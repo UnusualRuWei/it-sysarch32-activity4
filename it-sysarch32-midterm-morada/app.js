@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 //DB mongoDB using mongoose
 const mongoose = require('mongoose');
 
@@ -25,9 +26,14 @@ app.use(bodyParser.json());
 app.use('/uploads',express.static('uploads'));
 
 
+app.use(cors({
+    origin: 'http://localhost:5001',
+    credentials: true 
+  }));
+
 //This is for CORS ERROR Handling
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "http://localhost:5001");
     res.header("Access-Control-Allow-Header",
         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
