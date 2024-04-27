@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import '../css/ProductList.css'
 
@@ -6,6 +7,7 @@ function ProductList() {
   const [products, setProductList] = useState([]); // Initialize with empty array
   const [isLoading, setIsLoading] = useState(false); // Track loading state
   const [error, setError] = useState(null); // Track error state
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,6 +29,10 @@ function ProductList() {
 
     fetchData();
   }, []);
+  
+    const handleProductClick = (productId) => {
+      navigate(`/products/${productId}`); // Redirect to ProductDetail with ID
+    };
 
   return (
     <div>
@@ -36,12 +42,10 @@ function ProductList() {
         <div>
             {
                 products.map((product) => (
-                    <div className='cardHolder' key={product._id}>
-                      <h3>ID: {product._id}</h3> {/* Access count from outside */}
+                    <div className='cardHolder' key={product._id}  >
                       <h3>Name: {product.name}</h3>
-                      <p>Price: {product.price}</p>
                       <img src={"http://localhost:3000/"+product.productImage} alt={product.name} /> {/* Added alt text */}
-                      <p>{product.request.url}</p> {/* Access request.url */}
+                      <button onClick={() => handleProductClick(product._id)} >Show Details</button>{/* Access request.url */}
                     </div>
                   ))
             }

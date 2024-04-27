@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 function UserSignup() {
+    const [status, setStatus] = useState ('Sign Up New Account');
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -28,9 +29,11 @@ function UserSignup() {
       
             const data = await response.json();
             console.log('Signup successful:', data);
+            setStatus(data);
             // Handle successful signup (e.g., redirect to login page)
           } catch (error) {
             console.error('Error signing up:', error);
+            setStatus(error);
             // Handle errors appropriately (e.g., display error message to user)
           }
 
@@ -60,6 +63,7 @@ function UserSignup() {
                 />
                 <button type="submit">Sign Up</button>
             </form>
+            <p>{status.message}</p>
         </>
     )
 }
