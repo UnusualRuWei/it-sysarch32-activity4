@@ -27,18 +27,18 @@ app.use('/uploads',express.static('uploads'));
 
 
 app.use(cors({
-    origin: 'http://localhost:5001',
+    origin: 'http://localhost:5000',
     credentials: true 
   }));
 
 //This is for CORS ERROR Handling
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:5001");
+    res.header("Access-Control-Allow-Origin", "http://localhost:5000");
     res.header("Access-Control-Allow-Header",
         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
     if (req.method === 'OPTIONS') {
-        req.header('Access-Control-Allow-Methods',
+        res.header('Access-Control-Allow-Methods',
             'GET, POST, PATCH, DELETE, PUT');
         return res.status(200).json({});
     }

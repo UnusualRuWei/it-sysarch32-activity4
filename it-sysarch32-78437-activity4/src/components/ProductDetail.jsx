@@ -1,52 +1,79 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams for accessing route parameters
+import { useParams, useNavigate } from 'react-router-dom';
 
-
-function ProductDetail() {
-  const [product, setProduct] = useState(null); // Store the individual product
-  const [isLoading, setIsLoading] = useState(false); // Track loading state
-  const [error, setError] = useState(null); // Track error state
-  const { productId } = useParams(); // Access the product ID from URL parameters
+function ProductDetail({ token }) {
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { productId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true); // Set loading state to true
-      setError(null); // Clear any previous error
+      setIsLoading(true);
+      setError(null);
 
       try {
         const response = await fetch(`http://localhost:3000/products/${productId}`);
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(`Error fetching product details: ${response.statusText}`); // Handle specific errors
+          throw new Error(`Error fetching product details: ${response.statusText}`);
         }
 
-        setProduct(data.product); // Access and set the individual product
-        console.log('Product details:', data.product);
+        setProduct(data.product);
       } catch (error) {
         console.error('Error fetching product data:', error);
-        setError(error); // Set error state
+        setError(error);
       } finally {
-        setIsLoading(false); // Set loading state to false regardless of success or error
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [productId]); // Re-run useEffect when productId changes
+  }, [productId]);
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error deleting product: ${response.statusText}`);
+      }
+
+      console.log('Product deleted successfully');
+      // Redirect to products list or another page after deletion
+      navigate('/products');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    // Redirect to product editing form with pre-filled details
+    navigate(`/products/edit/${productId}`);
+  };
 
   return (
     <div>
       {isLoading && <p>Loading...</p>}
       {error && <p>Error: {error.message}</p>}
-      {product && ( // Check if product is available before rendering
+      {product && (
         <div>
           <h3>ID: {product._id}</h3>
           <h3>Name: {product.name}</h3>
           <p>Price: {product.price}</p>
-          <img src={"http://localhost:3000/" + product.productImage} alt={product.name} />
+          <img src={`http://localhost:3000/${product.productImage}`} alt={product.name} />
         </div>
       )}
-      {!isLoading && !product && <p>Product not found.</p>} {/* Handle case where product is not found */}
+      {!isLoading && !product && <p>Product not found.</p>}
+      <button onClick={handleDelete}>Delete</button>
+      <button onClick={handleEdit}>Edit</button>
       <a href="/products">Back</a>
     </div>
   );

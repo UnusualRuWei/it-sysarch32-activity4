@@ -1,9 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-function ProductForm() {
-  const [name, setName] = useState('null');
+function ProductForm({ token }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+   // Replace with your actual token
+
+  const isEdit = location.pathname.includes('/edit/'); // Check if it's an edit operation
+  const initialProductId = isEdit ? location.pathname.split('/edit/')[1] : null; // Extract productId for edit
+  const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
-  const [productImage, setProductImage] = useState(null); // Adjust path if needed
+  const [imageFile, setImageFile] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+
+  useEffect(() => {
+    if (isEdit && initialProductId) {
+      // Fetch existing product data and pre-fill the form fields for editing
+      fetchProductData(initialProductId);
+    }
+  }, [isEdit, initialProductId]);
+
+  const fetchProductData = async (productId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/products/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Error fetching product details: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log(data);
+      setName(data.product.name);
+      setPrice(data.product.price);
+
+      // If productImage exists, fetch the image and set it
+      if (data.product.productImage) {
+        setImageSrc('http://localhost:3000/'+ data.product.productImage);
+      }
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+    }
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -14,28 +53,34 @@ function ProductForm() {
       case 'price':
         setPrice(parseFloat(value)); // Ensure valid number input for price
         break;
-      case 'productImage':
-        setProductImage(value);
-        break;
       default:
         break;
     }
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    setImageFile(file);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const formData = {
-        name,
-        price,
-        productImage,
-      };
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('price', price);
+      formData.append('productImage', imageFile);
 
-      const response = await fetch('http://localhost:3000/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      const url = isEdit ? `http://localhost:3000/products/${initialProductId}` : 'http://localhost:3000/products';
+      const method = isEdit ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData,
       });
 
       const data = await response.json(); // Parse the response as JSON
@@ -47,6 +92,7 @@ function ProductForm() {
       } else {
         console.log('Product submitted successfully:', data);
         // You can display a success message to the user here or potentially reset the form
+        navigate('/products'); // Redirect after successful submission
       }
     } catch (error) {
       console.error('Error submitting product:', error);
@@ -57,7 +103,7 @@ function ProductForm() {
   return (
     <div>
       <h2>Product Details</h2>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label htmlFor="name">Name:</label>
         <input
           type="text"
@@ -78,24 +124,23 @@ function ProductForm() {
         />
         <br />
 
-        <label htmlFor="productImage">Product Image (URL):</label>
+        <label htmlFor="productImage">Product Image:</label>
         <input
-          type="text"
+          type="file"
           id="productImage"
           name="productImage"
-          value={productImage}
-          onChange={handleInputChange}
+          accept="image/*"
+          onChange={handleImageChange}
         />
         <br />
 
-        {/* Add a button for potential form submission or other actions */}
-        <button type="submit">Submit</button>
+        <button type="submit">{isEdit ? 'Update' : 'Create'}</button>
       </form>
 
       <h2>Current Product Information</h2>
       <p>Name: {name}</p>
-      <p>Price: {price.toFixed(2)}</p>  {/* Format price with two decimal places */}
-      <img src={productImage} alt={name} />
+      <p>Price: {typeof price === 'number' ? price.toFixed(2) : price}</p>
+      {imageFile ? <img src={URL.createObjectURL(imageFile)} alt="Product" /> : imageSrc && <img src={imageSrc} alt="Product" />}
     </div>
   );
 }

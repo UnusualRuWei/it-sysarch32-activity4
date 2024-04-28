@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function UserLogin() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,43 +26,33 @@ function UserLogin() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error(`Login failed with status ${response.status}`);
-      }
-
       const data = await response.json();
-      console.log('Login successful:', data);
 
-      // Handle successful login:
-      if (data.message === 'Auth successful') {
-        localStorage.setItem('authToken', data.token); // Store token in localStorage
-        setStatus('Login successful! Redirecting...'); // Inform user and redirect
-
-        // Redirect to a protected page (replace with your desired redirection logic)
-        setTimeout(() => {
-          window.location.href = '/products'; // Example redirection
-        }, 1000); // Simulate a delay (replace with actual redirection logic)
-        return new Promise((resolve) => resolve(true));
-      } else {
-        setStatus(data.message || 'Login failed. Please check your credentials.'); // Handle unexpected response
+      if (!response.ok) {
+        throw new Error(data.message || `Login failed with status ${response.status}`);
       }
+
+      console.log('Login successful:', data);
+      localStorage.setItem('authToken', data.token); // Store token in localStorage
+      setStatus('Login successful! Redirecting...'); // Inform user
+      navigate('/products');
+
     } catch (error) {
       console.error('Error logging in:', error);
       setStatus(error.message || 'An error occurred. Please try again.'); // Handle errors gracefully
     }
   };
 
-  // Check for existing token on component mount (optional)
+  // Redirect after successful login
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Handle user already being logged in (e.g., redirect to protected page)
-      console.log('User already logged in with token:', token);
-      setStatus('User already logged in.'); // Inform user
-      // Implement your redirection logic here (e.g., window.location.href = '/protected-page')
+      setStatus('User already logged in. Redirecting...'); // Inform user
+      setTimeout(() => {
+        navigate('/products'); // Redirect to protected page
+      }, 1000);
     }
-
-  }, []);
+  }, [navigate]);
 
   return (
     <>

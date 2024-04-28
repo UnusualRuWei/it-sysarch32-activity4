@@ -1,17 +1,23 @@
+function Header({ isLoggedIn, onLogout }) { // Receive isLoggedIn and onLogout props
 
-function Header(){
     return (
-        <header className="">
-            <div className="topNavBar">
-                <h1>HomePage</h1>
-                <a href="/signup">Sign-Up</a>
-                <a href="/login">Sign-In</a>
-                <a href="/products"> ProductList</a>
-                <a href="/orders">OrderList</a>
-            </div>  
-        </header>
+      <header className="">
+        <div className="topNavBar">
+          <h1>HomePage</h1>
+          {isLoggedIn ? ( // Conditionally render logout button
+            <button onClick={onLogout}>Logout</button>
+          ) : (
+            <>
+              <a href="/signup">Sign-Up</a>
+              <a href="/login">Sign-In</a>
+            </>
+          )}
+          <a href="/products">ProductList</a>
+          <a>ProductDetails</a>
+        </div>
+      </header>
     );
-    
-}
-
-export default Header
+  }
+  
+  export default Header;
+  
